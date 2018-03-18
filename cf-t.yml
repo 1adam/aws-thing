@@ -32,7 +32,7 @@ Resources:
       UserData: !Base64 !Join
                         -  ""
                         -  -  "#!/bin/bash\n"
-                        -  -  "echo '<?php echo \'Hello\'; ?>' > /var/www/html/index.php\n"
+                           -  "echo '<?php echo \'Hello\'; ?>' > /var/www/html/index.php\n"
       Tags:
         - Key: Name
           Value: conduit-instance
