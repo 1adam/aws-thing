@@ -32,6 +32,7 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
+          rm /var/www/html/index.htm*
           echo '<?php echo \'Hello\'; ?>' > /var/www/html/index.php
       Tags:
         - Key: Name
