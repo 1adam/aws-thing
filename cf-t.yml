@@ -15,7 +15,7 @@ Parameters:
 
   ManagementIP:
     Type: String
-    Description: Allows SSH access from this address
+    Description: "Allows SSH access from this address - CIDR including /32"
 
 # Conditions:
 

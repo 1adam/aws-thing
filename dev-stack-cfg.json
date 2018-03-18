@@ -2,6 +2,6 @@
 	"Parameters": {
 		"CustomAMI": "ami-1b16df66",
 		"KeyPair": "nuKP",
-		"ManagementIP": "108.162.138.154"
+		"ManagementIP": "108.162.138.154/32"
 	}
 }
