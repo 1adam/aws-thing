@@ -29,10 +29,10 @@ Resources:
       Keyname: !Ref KeyPair
       SecurityGroups:
       - !Ref HostSecGrp
-      UserData: Fn::Base64: !Join
-                            -  ""
-                            -  -  "#!/bin/bash\n"
-                               -  "echo '<?php echo \'Hello\'; ?>' > /var/www/html/index.php\n"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo '<?php echo \'Hello\'; ?>' > /var/www/html/index.php
       Tags:
         - Key: Name
           Value: conduit-instance
@@ -52,8 +52,7 @@ Resources:
 
 Outputs:
   WebsiteURL:
-  - Value:
-    - !Join
+    Value: !Join
       - ""
       - - "http://"
         - !GetAtt Host.PublicDnsName
