@@ -6,8 +6,8 @@ Parameters:
 
   AppName:
     Type: String
-    Description: "Application Name - only [A-Za-z0-9-_]"
-    AllowedPattern: "^[A-Za-z0-9-_]+$"
+    Description: "Application Name - only [a-z0-9-_]"
+    AllowedPattern: "^[a-z0-9-_]+$"
 
   CustomAMI:
     Type: String
@@ -152,7 +152,7 @@ Resources:
   LaunchCfg:
     Type: "AWS::AutoScaling::LaunchConfiguration"
     Properties:
-      AssociatePublicIpAddress: false
+      AssociatePublicIpAddress: true
       IamInstanceProfile: !Ref EC2InstanceProfile
       ImageId: !Ref CustomAMI
       InstanceMonitoring: false
@@ -231,6 +231,29 @@ Resources:
       Type: application
       IpAddressType: ipv4
 
+  LBListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref LB
+      Port: 80
+      Protocol: HTTP
+
+  LBListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /*
+      ListenerArn: !Ref LBListener
+      Priority: 1
+
   ASG:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
@@ -250,6 +273,9 @@ Resources:
       LaunchConfigurationName: !Ref LaunchCfg
       TargetGroupARNs:
         - !Ref TargetGroup
+      VPCZoneIdentifier:
+        - !Ref Subnet1
+        - !Ref Subnet2
 
   CodeDepApp:
     Type: "AWS::CodeDeploy::Application"
@@ -273,7 +299,7 @@ Resources:
       LoadBalancerInfo:
         TargetGroupInfoList:
           - Name: !GetAtt TargetGroup.TargetGroupName
-      ServiceRoleArn: !Ref CodeDepSvcRole
+      ServiceRoleArn: !GetAtt CodeDepSvcRole.Arn
 
   CodeDepSvcRole:
     Type: "AWS::IAM::Role"
@@ -486,6 +512,8 @@ Resources:
           - "inc"
           - "bkt"
       AccessControl: "Private"
+      VersioningConfiguration:
+        Status: Enabled
 
 
   VPCigw:
@@ -504,6 +532,36 @@ Resources:
     Properties:
       InternetGatewayId: !Ref VPCigw
       VpcId: !Ref VPC
+
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join
+            - "-"
+            - - !Ref AppName
+              - "rt"
+
+  PubRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref VPCigw
+      RouteTableId: !Ref RouteTable
+
+  Subnet1RTassoc:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet1
+
+  Subnet2RTassoc:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet2
 
 
 Outputs:
